@@ -83,44 +83,44 @@ interface IGamesRunnrSettings {
 class GamesRunnr {
     // Array of Functions to be run on each upkeep
     private games: any[];
-        
+
     // Optional trigger Functions triggered on...
     private onPause: any;   // this.pause()
     private onPlay: any; // this.play()
 
     // Arguments for the optional trigger Functions
     private callbackArguments: any[];
-        
+
     // Reference to the next upkeep, such as setTimeout's returned int
     private upkeepNext: number;
-        
+
     // Function used to schedule the next upkeep, such as setTimeout
     private upkeepScheduler: any;
-        
+
     // Function used to cancel the next upkeep, such as clearTimeout
     private upkeepCanceller: any;
-        
+
     // Boolean: whether the game is paused
     private paused: boolean;
-        
+
     // Number: amount of time, in milliseconds, between each upkeep
     private interval: number;
-        
+
     // Playback rate (defaults to 1)
     private speed: number;
-        
+
     // The actual speed, as (1 / speed) * interval
     private intervalReal: number;
-        
+
     // An FPSAnalyzr object that measures on each upkeep
     private FPSAnalyzer: FPSAnalyzr;
-        
+
     // An object to set as the scope for games (if not this)
     private scope: any;
-        
+
     // Whether scheduling timeouts should adjust to elapsed upkeep time
     private adjustFramerate: boolean;
-    
+
     /**
      * Resets the GamesRunnr.
      * 
@@ -152,50 +152,50 @@ class GamesRunnr {
 
         this.setIntervalReal();
     }
-    
-    
+
+
     /* Gets
     */
-    
+
     /** 
      * @return {FPSAnalyzer} The FPSAnalyzer used in the GamesRunnr.
      */
     getFPSAnalyzer(): FPSAnalyzr {
         return this.FPSAnalyzer;
     }
-    
+
     /**
      * @return {Boolean} Whether this is paused.
      */
     getPaused(): boolean {
         return this.paused;
     }
-    
+
     /**
      * @return {Function[]} The Array of game Functions.
      */
     getGames(): any[] {
         return this.games;
     }
-    
+
     /**
      * @return {Number} The interval between upkeeps.
      */
     getInterval(): number {
         return this.interval;
     }
-    
+
     /**
      * @return {Number} The speed multiplier being applied to the interval.
      */
     getSpeed(): number {
         return this.speed;
     }
-    
-    
+
+
     /* Runtime
     */
-    
+
     /**
      * Meaty function, run every <interval*speed> milliseconds, to mark an FPS
      * measurement and run every game once.
@@ -204,7 +204,7 @@ class GamesRunnr {
         if (this.paused) {
             return;
         }
-        
+
         // Prevents double upkeeping, in case a new upkeepNext was scheduled.
         this.upkeepCanceller(this.upkeepNext);
 
@@ -217,7 +217,7 @@ class GamesRunnr {
 
         this.FPSAnalyzer.measure();
     }
-    
+
     /**
      * A utility for this.upkeep that calls the same games.forEach(run), timing
      * the total execution time.
@@ -225,11 +225,11 @@ class GamesRunnr {
      * @return {Number} The total time spent, in milliseconds.
      */
     upkeepTimed(): number {
-        var now = this.FPSAnalyzer.getTimestamp();
+        var now: number = this.FPSAnalyzer.getTimestamp();
         this.games.forEach(this.run);
         return this.FPSAnalyzer.getTimestamp() - now;
     }
-    
+
     /**
      * Continues execution of this.upkeep by calling it. If an onPlay has been
      * defined, it's called before.
@@ -246,7 +246,7 @@ class GamesRunnr {
 
         this.upkeep();
     }
-    
+
     /**
      * Stops execution of this.upkeep, and cancels the next call. If an onPause
      * has been defined, it's called after.
@@ -263,7 +263,7 @@ class GamesRunnr {
 
         this.upkeepCanceller(this.upkeep);
     }
-    
+
     /**
      * Calls upkeep a <num or 1> number of times, immediately.
      * 
@@ -276,34 +276,34 @@ class GamesRunnr {
             this.step(times - 1);
         }
     }
-    
+
     /**
      * Toggles whether this is paused, and calls the appropriate Function.
      */
     togglePause(): void {
         this.paused ? this.play() : this.pause();
     }
-    
-    
+
+
     /* Games manipulations
     */
-    
+
     /**
      * Sets the interval between between upkeeps.
      * 
      * @param {Number} The new time interval in milliseconds.
      */
     setInterval(interval: number): void {
-        var realint = Number(interval);
+        var intervalReal: number = Number(interval);
 
-        if (isNaN(realint)) {
+        if (isNaN(intervalReal)) {
             throw new Error("Invalid interval given to setInterval: " + interval);
         }
 
-        this.interval = realint;
+        this.interval = intervalReal;
         this.setIntervalReal();
     }
-    
+
     /**
      * Sets the speed multiplier for the interval.
      * 
@@ -311,27 +311,27 @@ class GamesRunnr {
      *                 twice as fast, and 0.5 will be half as fast.
      */
     setSpeed(speed: number): void {
-        var numReal = Number(speed);
+        var speedReal: number = Number(speed);
 
-        if (isNaN(numReal)) {
+        if (isNaN(speedReal)) {
             throw new Error("Invalid speed given to setSpeed: " + speed);
         }
 
-        this.speed = numReal;
+        this.speed = speedReal;
         this.setIntervalReal();
     }
-    
-    
+
+
     /* Utilities
     */
-    
+
     /**
      * Sets the intervalReal variable, which is interval * (inverse of speed).
      */
     setIntervalReal(): void {
         this.intervalReal = (1 / this.speed) * this.interval;
     }
-    
+
     /**
      * Curry function to fun a given function. Used in games.forEach(game).
      * 
