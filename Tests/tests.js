@@ -1,10 +1,10 @@
 var total = 0,
     games = [
         function () {
-            total += 1;
+            total += 7;
         },
         function () {
-            total += 2;
+            total *= 3;
         }
     ],
     interval = 16,
@@ -16,11 +16,11 @@ var total = 0,
         return "Playing!";
     },
     callbackArguments = [],
-    upkeepScheduler = function (event, timeout) {
-        return setTimeout(event, timeout);
+    upkeepScheduler = function (handler, timeout) {
+        return setTimeout(handler, timeout);
     },
-    upkeepCanceller = function (code) {
-        clearTimeout(code);
+    upkeepCanceller = function (handle) {
+        clearTimeout(handle);
     },
     FPSAnalyzer = new FPSAnalyzr({}),
     adjustFramerate = true,
@@ -77,5 +77,37 @@ describe("constructor", function () {
         chai.expect(GamesRunner.getOnPlay()).to.be.equal(onPlay);
         chai.expect(GamesRunner.getCallbackArguments()).to.be.equal(callbackArguments);
         chai.expect(GamesRunner.getUpkeepScheduler()).to.be.equal(upkeepScheduler);
+    });
+});
+
+describe("upkeep", function () {
+    it("runs games in order", function (done) {
+        GamesRunner = new GamesRunnr({
+            "games": games
+        });
+        
+        chai.expect(total).to.be.equal(0);
+        GamesRunner.play();
+        chai.expect(total).to.be.equal(21);
+        GamesRunner.pause();
+        chai.expect(total).to.be.equal(21);
+        
+        setTimeout(function () {
+            chai.expect(total).to.be.equal(21);
+            done();
+        }, GamesRunner.getInterval() * 2 + 1);
+    });
+    
+    it("schedules the next upkeep", function (done) {
+        total = 0;
+        
+        GamesRunner.play();
+        chai.expect(total).to.be.equal(21);
+        
+        setTimeout(function () {
+            GamesRunner.pause();
+            chai.expect(total).to.be.equal(84);
+            done();
+        }, GamesRunner.getInterval() + 1);
     });
 });
