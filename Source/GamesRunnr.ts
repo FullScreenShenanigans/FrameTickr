@@ -1,4 +1,4 @@
-/// <reference path="External/FPSAnalyzr.ts" />
+/// <reference path="External/FPSAnalyzr/FPSAnalyzr-0.2.0.ts" />
 
 interface IGamesRunnrSettings {
     // The Array of Functions to run on each upkeep.
@@ -85,7 +85,7 @@ class GamesRunnr {
     private games: any[];
 
     // Optional trigger Functions triggered on...
-    private onPause: any;   // this.pause()
+    private onPause: any; // this.pause()
     private onPlay: any; // this.play()
 
     // Arguments for the optional trigger Functions
@@ -99,6 +99,9 @@ class GamesRunnr {
 
     // Function used to cancel the next upkeep, such as clearTimeout
     private upkeepCanceller: any;
+
+    // this.upkeep bound to this, for upkeepScheduler
+    private upkeepBound: any;
 
     // Boolean: whether the game is paused
     private paused: boolean;
@@ -139,12 +142,19 @@ class GamesRunnr {
         this.onPause = settings.onPause;
         this.onPlay = settings.onPlay;
         this.callbackArguments = settings.callbackArguments || [this];
-        this.upkeepScheduler = settings.upkeepScheduler || window.setTimeout;
-        this.upkeepCanceller = settings.upkeepCanceller || window.clearTimeout;
         this.FPSAnalyzer = settings.FPSAnalyzer || new FPSAnalyzr();
         this.adjustFramerate = settings.adjustFramerate;
         this.scope = settings.scope || this;
         this.paused = true;
+
+        this.upkeepScheduler = settings.upkeepScheduler || function (handler: any, timeout: number): number {
+            return setTimeout(handler, timeout);
+        };
+        this.upkeepCanceller = settings.upkeepCanceller || function (handle: number): void {
+            clearTimeout(handle);
+        };
+
+        this.upkeepBound = this.upkeep.bind(this);
 
         for (i = 0; i < this.games.length; i += 1) {
             this.games[i] = this.games[i].bind(this.scope);
@@ -192,6 +202,41 @@ class GamesRunnr {
         return this.speed;
     }
 
+    /**
+     * @return {Function} The optional trigger to be called on pause.
+     */
+    getOnPause(): any {
+        return this.onPause;
+    }
+
+    /**
+     * @return {Function} The optional trigger to be called on play.
+     */
+    getOnPlay(): any {
+        return this.onPlay;
+    }
+
+    /**
+     * @return {Array} Arguments to be given to the optional trigger Functions.
+     */
+     getCallbackArguments(): any[] {
+         return this.callbackArguments;
+     }
+
+     /**
+      * @return {Function} Function used to schedule the next upkeep.
+      */
+      getUpkeepScheduler(): any {
+          return this.upkeepScheduler;
+      }
+
+     /**
+      * @return {Function} Function used to cancel the next upkeep.
+      */
+      getUpkeepCanceller(): any {
+          return this.upkeepCanceller;
+      }
+
 
     /* Runtime
     */
@@ -209,9 +254,9 @@ class GamesRunnr {
         this.upkeepCanceller(this.upkeepNext);
 
         if (this.adjustFramerate) {
-            this.upkeepNext = this.upkeepScheduler(this.upkeep, this.intervalReal - (this.upkeepTimed() | 0));
+            this.upkeepNext = this.upkeepScheduler(this.upkeepBound, this.intervalReal - (this.upkeepTimed() | 0));
         } else {
-            this.upkeepNext = this.upkeepScheduler(this.upkeep, this.intervalReal);
+            this.upkeepNext = this.upkeepScheduler(this.upkeepBound, this.intervalReal);
             this.games.forEach(this.run);
         }
 
