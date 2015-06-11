@@ -22,7 +22,7 @@ var total = 0,
     upkeepCanceller = function (handle) {
         clearTimeout(handle);
     },
-    FPSAnalyzer = new FPSAnalyzr({}),
+    FPSAnalyzer = new FPSAnalyzr.FPSAnalyzr({}),
     adjustFramerate = true,
     scope = {},
     getTimestamp,
@@ -45,18 +45,18 @@ if (typeof performance === "undefined") {
 describe("constructor", function () {
     it("throws an error if not given games", function () {
         chai.expect(function () {
-            new GamesRunnr({});
+            new GamesRunnr.GamesRunnr({});
         }).to.throw("No games given to GamesRunnr.");
     });
 
     it("doesn't throw an error when given games", function () {
-        new GamesRunnr({
+        new GamesRunnr.GamesRunnr({
             "games": []
         });
     });
 
     it("stores the given member variables", function () {
-        GamesRunner = new GamesRunnr({
+        GamesRunner = new GamesRunnr.GamesRunnr({
             "games": games,
             "interval": interval,
             "speed": speed,
@@ -82,7 +82,7 @@ describe("constructor", function () {
 
 describe("upkeep", function () {
     it("runs games in order", function (done) {
-        GamesRunner = new GamesRunnr({
+        GamesRunner = new GamesRunnr.GamesRunnr({
             "games": games
         });
         
